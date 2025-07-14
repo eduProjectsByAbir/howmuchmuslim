@@ -21,12 +21,33 @@
             margin-top: 20px;
         }
 
-        .history {
-            margin-top: 20px;
+        .result-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
         }
 
-        .history button {
-            margin: 0 5px;
+        .result-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            margin: 20px auto;
+            transition: transform 0.5s;
+        }
+
+        .result-shariah {
+            background: #4CAF50;
+        }
+
+        .result-secular {
+            background: #f44336;
         }
     </style>
 </head>
@@ -45,12 +66,16 @@
                 <div class="progress">
                     <div class="determinate" id="progressBar" style="width: 0%"></div>
                 </div>
-                <div class="history center-align">
-                    <h6>পূর্ববর্তী উত্তর:</h6>
-                    <div id="historyBtns"></div>
+            </div>
+            <div id="result" class="center-align" style="display:none;">
+                <div class="result-card">
+                    <h5>আপনার ফলাফল</h5>
+                    <div class="result-circle result-shariah" id="shariahCircle"></div>
+                    <p id="shariahText"></p>
+                    <div class="result-circle result-secular" id="secularCircle"></div>
+                    <p id="secularText"></p>
                 </div>
             </div>
-            <div id="result" class="center-align" style="display:none;"></div>
         </div>
     </div>
 
@@ -145,86 +170,50 @@
         })), ...secularQuestions.map(q => ({
             type: 'secular',
             text: q
-        }))];
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-        shuffle(questions);
+        }))].sort(() => Math.random() - 0.5);
 
         let index = 0;
         let shariahScore = 0;
         let secularScore = 0;
-        const answers = [];
 
         const questionEl = document.getElementById('question');
         const progressEl = document.getElementById('progress');
         const progressBar = document.getElementById('progressBar');
-        const historyBtns = document.getElementById('historyBtns');
-
-        function updateHistory() {
-            historyBtns.innerHTML = '';
-            for (let i = Math.max(0, index - 3); i < index; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'btn-small blue';
-                btn.textContent = `${i + 1}`;
-                btn.onclick = () => goBackTo(i);
-                historyBtns.appendChild(btn);
-            }
-        }
-
-        function goBackTo(i) {
-            index = i;
-            showQuestion();
-        }
 
         function showQuestion() {
             if (index < questions.length) {
                 questionEl.textContent = questions[index].text;
-                progressEl.textContent = `${index + 1} / ${questions.length}`;
-                progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
-                updateHistory();
+                progressEl.textContent = `${index+1} / ${questions.length}`;
+                progressBar.style.width = `${((index+1)/questions.length)*100}%`;
             } else {
-                localStorage.setItem('shariahScore', shariahScore);
-                localStorage.setItem('secularScore', secularScore);
                 const shariahPercent = (shariahScore / 40) * 100;
                 const secularPercent = (secularScore / 40) * 100;
-                document.getElementById('result').innerHTML = `
-          <h5>আপনার ফলাফল</h5>
-          <p>শরিয়াহ অনুসরণ: ${shariahPercent.toFixed(2)}%</p>
-          <p>সেকুলার-হিউম্যানিস্ট অনুসরণ: ${secularPercent.toFixed(2)}%</p>
-        `;
-                document.getElementById('result').style.display = 'block';
-                document.getElementById('quiz').style.display = 'none';
-            }
-        }
-
-        function recordAnswer(ans) {
-            if (answers[index] !== undefined) {
-                if (questions[index].type === 'shariah' && answers[index] === true) shariahScore--;
-                if (questions[index].type === 'secular' && answers[index] === true) secularScore--;
-            }
-            answers[index] = ans;
-            if (ans) {
-                if (questions[index].type === 'shariah') shariahScore++;
-                if (questions[index].type === 'secular') secularScore++;
+                showResult(shariahPercent, secularPercent);
             }
         }
 
         document.getElementById('yesBtn').addEventListener('click', () => {
-            recordAnswer(true);
+            if (questions[index].type === 'shariah') shariahScore++;
+            if (questions[index].type === 'secular') secularScore++;
             index++;
             showQuestion();
         });
 
         document.getElementById('noBtn').addEventListener('click', () => {
-            recordAnswer(false);
             index++;
             showQuestion();
         });
+
+        function showResult(shariahPercent, secularPercent) {
+            document.getElementById('shariahCircle').innerText = `${shariahPercent.toFixed(2)}%`;
+            document.getElementById('secularCircle').innerText = `${secularPercent.toFixed(2)}%`;
+            document.getElementById('shariahText').innerText =
+                `আপনি ${shariahPercent.toFixed(2)}% শরিয়াহ অনুসারী মুসলিম`;
+            document.getElementById('secularText').innerText =
+                `আপনি ${secularPercent.toFixed(2)}% সেকুলার-হিউম্যানিজমের অনুসারী`;
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('quiz').style.display = 'none';
+        }
 
         showQuestion();
     </script>
