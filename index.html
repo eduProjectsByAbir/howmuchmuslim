@@ -13,6 +13,35 @@
             padding: 40px;
         }
 
+        #yesBtn,
+        #noBtn {
+            font-size: 24px;
+            padding: 14px 34px 45px 25px;
+            margin: 10px;
+            display: inline-block;
+        }
+
+        #quiz .center-align {
+            text-align: center;
+        }
+
+        #quiz .center-align {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        #yesBtn {
+            background-color: #4CAF50 !important;
+        }
+
+        #noBtn {
+            background-color: #f44336 !important;
+        }
+
+
         .card {
             padding: 20px;
         }
@@ -34,7 +63,9 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             padding: 30px;
-            margin-top: 30px;
+            margin: 0 auto;
+            width: 400px;
+            text-align: center;
         }
 
         .result-circle {
@@ -48,7 +79,6 @@
             color: #fff;
             margin: 20px auto;
             font-weight: bold;
-            transition: transform 0.3s;
         }
 
         .result-circle:hover {
@@ -61,6 +91,14 @@
 
         .result-secular {
             background: #f44336;
+        }
+
+        #usernameInput {
+            margin-top: 20px;
+        }
+
+        #downloadBtn {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -85,17 +123,22 @@
                 </div>
             </div>
             <div id="result" class="center-align" style="display:none;">
-                <div class="result-card">
+                <div class="result-card" id="resultCard">
                     <h5>আপনার ফলাফল</h5>
+                    <p id="usernameDisplay"></p>
                     <div class="result-circle result-shariah" id="shariahCircle"></div>
                     <p id="shariahText"></p>
                     <div class="result-circle result-secular" id="secularCircle"></div>
                     <p id="secularText"></p>
-                    <p class="grey-text">এই ফলাফলের মাধ্যমে আপনি আপনার মানসিক ঝোঁক সম্পর্কে একটি ধারনা পেলেন।</p>
                 </div>
+                <input type="text" id="usernameInput" placeholder="আপনার নাম লিখুন (ঐচ্ছিক)">
+                <br>
+                <button id="downloadBtn" class="btn blue">ফলাফল ইমেজ হিসেবে ডাউনলোড করুন</button>
             </div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
         const shariahQuestions = [
@@ -238,11 +281,6 @@
 
                 showResult(shariahPercent, secularPercent);
 
-                //         document.getElementById('result').innerHTML = `
-                //   <h5>আপনার ফলাফল</h5>
-                //   <p>শরিয়াহ অনুসরণ: ${shariahPercent.toFixed(2)}%</p>
-                //   <p>সেকুলার-হিউম্যানিস্ট অনুসরণ: ${secularPercent.toFixed(2)}%</p>
-                // `;
                 document.getElementById('result').style.display = 'block';
                 document.getElementById('quiz').style.display = 'none';
             }
@@ -261,15 +299,26 @@
         }
 
         function showResult(shariahPercent, secularPercent) {
+            const name = document.getElementById('usernameInput').value || 'ব্যক্তি';
+            document.getElementById('usernameDisplay').innerText = `নাম: ${name}`;
             document.getElementById('shariahCircle').innerText = `${shariahPercent.toFixed(2)}%`;
             document.getElementById('secularCircle').innerText = `${secularPercent.toFixed(2)}%`;
             document.getElementById('shariahText').innerText =
                 `আপনি ${shariahPercent.toFixed(2)}% মুসলিম`;
             document.getElementById('secularText').innerText =
                 `আপনি ${secularPercent.toFixed(2)}% সেকুলার-হিউম্যানিজমের অনুসারী`;
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('quiz').style.display = 'none';
         }
+
+        document.getElementById('downloadBtn').addEventListener('click', function () {
+            const name = document.getElementById('usernameInput').value || 'ব্যক্তি';
+            document.getElementById('usernameDisplay').innerText = `নাম: ${name}`;
+            html2canvas(document.getElementById('resultCard')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `quiz-result-${name}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
 
         document.getElementById('yesBtn').addEventListener('click', () => {
             recordAnswer(true);
